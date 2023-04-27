@@ -1,10 +1,11 @@
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import useAuth from './useAuth'
 import { Container, Form } from 'react-bootstrap'
 import SpotifyWebApi from 'spotify-web-api-node'
 import TrackSearchResult from './Track'
 import Player from "./Player"
 import axios from "axios"
+import {SearchContainer, SearchInput} from './search'
 
 const spotifyApi = new SpotifyWebApi({
     clientId: "a4b57b7ef000452eab8dd9362a2de875",
@@ -20,6 +21,12 @@ export default function Dashboard({code}) {
     const [playingTrack, setPlayingTrack] = useState()
     const [lyrics, setLyrics] = useState("")
 
+    const targetRef = useRef(null)
+    const [isHovered, setIsHovered] = useState()
+    const [isFocused, setIsFocused] = useState()
+    const showSearchInput = isHovered || isFocused
+
+
     console.log(searchResults)
 
     function chooseTrack(track) {
@@ -28,6 +35,9 @@ export default function Dashboard({code}) {
         setLyrics('')
 
     }
+    
+   
+
 
     // Set New Access Token
     useEffect(() => {
@@ -91,34 +101,58 @@ export default function Dashboard({code}) {
 
     }, [playingTrack])
 
+    useEffect(() => {
+
+    },[showSearchInput])
+
 
     return (
-    <Container className = "d-flex flex-column py-2" style = {{ height: "100vh"}}>
-        <Form.Control // search bar
-            type = "search" 
-            placeholder = "Search Songs/Artists" 
-            value = {search} 
-            onChange = {e => setSearch(e.target.value)}
-        />
-         
+    
+    <Container className = "d-flex flex-column py-2" style = {{ height: "100vh", backgroundColor: "#9fe2bf", width: "100vw"}}>
+        <div className = "">
+        <SearchContainer 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onFocus={() => setIsHovered(true)}
+            onBlur={() => setIsHovered(false)}
+            hover = {showSearchInput}
+            
+            >
+
+
+           <SearchInput // search bar
+                ref = {targetRef}
+                showSearchInput = {showSearchInput}
+
+                type = "search" 
+                placeholder = "Search Songs/Artists" 
+                value = {search} 
+                onChange = {e => setSearch(e.target.value)}
+            />
+
+         </SearchContainer>
+         </div>
         <div //search results container
             className = "flex-grow-1 my-2" 
-            style = {{ overflowY: 'auto' }}
+            style = {{ overflowY: 'auto' }}  
             >
             {searchResults.map(track => (
                 <TrackSearchResult track = {track} key = {track.uri} chooseTrack = {chooseTrack} />
             ))}
 
             {searchResults.length === 0 && (
-                <div className = "text-center" style = {{ whiteSpace: "pre"}}>
+                <div className = "text-center" style = {{ whiteSpace: "pre" }}>
                     {lyrics}
                 </div>
 
             )}
 
         </div>
-        <div> 
-            <Player accessToken={accessToken} trackUri = {playingTrack?.uri}/>
+
+        <div style = {{height: "10vh", width: "100%", backgroundColor: "white"}}>
+            <div> 
+                <Player accessToken={accessToken} trackUri = {playingTrack?.uri}/>
+            </div>
         </div>
     </Container> 
 
